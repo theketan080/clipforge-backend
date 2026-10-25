@@ -17,14 +17,20 @@ function downloadVideo(url, jobId) {
         );
 
         const args = [
-            "-f",
-            "bv*+ba/b",
-            "--merge-output-format",
-            "mp4",
-            "-o",
-            outputTemplate,
-            url
-        ];
+    "-f",
+    "bv*+ba/b",
+
+    "--js-runtimes",
+    `deno:${path.join(__dirname, "..", "bin", "deno")}`,
+
+    "--merge-output-format",
+    "mp4",
+
+    "-o",
+    outputTemplate,
+
+    url
+];
 
         // Windows: use system-installed yt-dlp
         // Render/Linux: use bundled binary in /bin
