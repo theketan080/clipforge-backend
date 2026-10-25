@@ -26,43 +26,60 @@ function downloadVideo(url, jobId) {
             url
         ];
 
+        // Windows: use system-installed yt-dlp
+        // Render/Linux: use bundled binary in /bin
+        const ytDlpPath =
+            process.platform === "win32"
+                ? "yt-dlp"
+                : path.join(__dirname, "..", "bin", "yt-dlp");
+
         console.log("Starting video download...");
         console.log("URL:", url);
+        console.log("yt-dlp path:", ytDlpPath);
 
-        execFile("yt-dlp", args, (error, stdout, stderr) => {
+        execFile(
+            ytDlpPath,
+            args,
+            (error, stdout, stderr) => {
 
-            if (error) {
-                console.error("yt-dlp error:");
-                console.error(stderr);
+                if (error) {
+                    console.error("yt-dlp error:");
+                    console.error(stderr);
 
-                return reject(
-                    new Error("Video download failed")
+                    return reject(
+                        new Error("Video download failed")
+                    );
+                }
+
+                console.log(stdout);
+
+                const files = fs.readdirSync(downloadsDir);
+
+                const downloadedFile = files.find(
+                    file => file.startsWith(`${jobId}.`)
                 );
-            }
 
-            console.log(stdout);
+                if (!downloadedFile) {
+                    return reject(
+                        new Error(
+                            "Downloaded video file not found"
+                        )
+                    );
+                }
 
-            const files = fs.readdirSync(downloadsDir);
-
-            const downloadedFile = files.find(
-                file => file.startsWith(`${jobId}.`)
-            );
-
-            if (!downloadedFile) {
-                return reject(
-                    new Error("Downloaded video file not found")
+                const filePath = path.join(
+                    downloadsDir,
+                    downloadedFile
                 );
+
+                console.log(
+                    "Video downloaded:",
+                    filePath
+                );
+
+                resolve(filePath);
             }
-
-            const filePath = path.join(
-                downloadsDir,
-                downloadedFile
-            );
-
-            console.log("Video downloaded:", filePath);
-
-            resolve(filePath);
-        });
+        );
     });
 }
 
